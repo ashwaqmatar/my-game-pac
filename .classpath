@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="src" path="Ex4/src"/>
+	<classpathentry kind="lib" path="Ex4/Ex4test.jar"/>
+	<classpathentry kind="lib" path="Ex4/mysql-connector-java-5.1.47.jar"/>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="src" path="Pictures&amp;Icones"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/5"/>
+	<classpathentry kind="lib" path="/PACMAN-GIS/json-simple-1.1.jar"/>
+	<classpathentry kind="output" path="Ex4/bin"/>
+</classpath>
