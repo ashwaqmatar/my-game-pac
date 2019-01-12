@@ -14,31 +14,44 @@ import Coords.Map;
 import File_format.CSVReader;
 import Geom.Point3D;
 import Algorithm.ShortestPathAlgo;
+import Robot.Play;
+import javafx.scene.shape.Box;
+
 /**
  * This class represents the function that manages the games (pacmans, fruits ..)
  * It has many features.
  *
  */
 public class game {
-
+	/**set  variables*/
+	public player player;
 	public  ArrayList<Packman> Packmanarr = new ArrayList<>();
 	public  ArrayList<Fruit> Fruits_arr = new ArrayList<>();
-	public 	String file_directory;
+	public  ArrayList<Ghost> Ghostarr = new ArrayList<>();
+	public  ArrayList<BOX> BOX_arr = new ArrayList<>();
+	public Play play;
+
+
+
+	public 	String file_directory="";
 	public Map map = new Map();
-/**
- * Constractor
- * @param p
- * @param f
- */
-	public game(ArrayList<Packman> p , ArrayList<Fruit> f) {
+	/**
+	 * Constractor
+	 * @param p
+	 * @param f
+	 */
+	public game(ArrayList<Packman> p , ArrayList<Fruit> F, ArrayList<Ghost> G,ArrayList<BOX> B) {
 		this.Packmanarr = p;
-		this.Fruits_arr = f;
+		this.Fruits_arr = F;
+		this.BOX_arr = B;
+		this.Ghostarr = G;
+
 
 	}
-/**
- * setters and getters
- * @param file_directory
- */
+	/**
+	 * setters and getters
+	 * @param file_directory
+	 */
 
 	public void setfile_dir(String file_directory) {
 		this.file_directory = file_directory;
@@ -46,27 +59,71 @@ public class game {
 	public String getdirectory() {
 		return this.file_directory;
 	}
-	
-	
+
+
 	/************************************/
-	
-	
-	
+	public game(Play play) throws IOException {
+		this.play = play;
+		makeGame(play.getBoard());
+	}
+	public void makeGame(ArrayList<String > board) throws IOException{		
+		ArrayList<String > Board =board;
+		Fruits_arr=new  ArrayList<>();
+		Packmanarr=new ArrayList<>();
+		this.BOX_arr=new ArrayList<>();
+		Ghostarr=new ArrayList<>();
+
+		for (int i = 1; i < Board.size(); i++) {
+
+			String line =Board.get(i);
+			String[] RoW = line.split(",");
+			// creat the new  player wih argomints (p, speed, radius)  
+			//first convert the coord (P) to pixel
+			if(RoW[0].equals("M")) {
+				player = new player(map.coord2pixel(new Point3D(RoW[2],RoW[3],RoW[4])), Double.parseDouble(RoW[5]), Double.parseDouble(RoW[6]));
+			}
+			// creat the new  packman wih argomints p, speed,radius  
+			//first convert the coord (P) to pixel
+			if(RoW[0].equals("P")) {
+				Packmanarr.add(new Packman( map.coord2pixel(new Point3D(RoW[2],RoW[3],RoW[4])), Double.parseDouble(RoW[5]), Double.parseDouble(RoW[6])));	
+			}
+			// creat the new  Fruit wih argomints p, Weight
+			//first convert the coord (P) to pixel
+			if(RoW[0].equals("F")) {
+				Fruits_arr.add(new Fruit(map.coord2pixel(new Point3D(RoW[2],RoW[3],RoW[4])),  Integer.parseInt(RoW[5])));
+			}
+			// creat the new  Fruit wih argomints p1, p2 (set the coordenata for the box )
+			//first convert the coord (P) to pixel
+			if(RoW[0].equals("B")) {
+				BOX_arr.add(new BOX (map.coord2pixel(new Point3D(RoW[2],RoW[3],RoW[4])),map.coord2pixel(new Point3D(RoW[5],RoW[6],RoW[7]))));
+
+			}// creat the new  Ghost wih argomints (p, speed, radius)
+			//first convert the coord (P) to pixel
+			if(RoW[0].equals("G")) {
+				Ghostarr.add(new Ghost(map.coord2pixel(new Point3D(RoW[2],RoW[3],RoW[4])),Double.parseDouble(RoW[5]) , Double.parseDouble(RoW[6])));	
+			}
+		}
+	}
+
+
 	public  void save2Csv() throws FileNotFoundException {
 		StringBuilder snb = new StringBuilder();
 		PrintWriter pw = new PrintWriter(new File(getdirectory()+".csv"));
+		/**set the data in arr*/
+		String[] HEADER = {"Type","id"	,"Lat"	,"Lon"	,"Alt"	,"Speed/Weight"	,"Radius"};
+		for (int i = 0; i < HEADER.length; i++) {
 
-		String[] headers = {"Type","id"	,"Lat"	,"Lon"	,"Alt"	,"Speed/Weight"	,"Radius"};
-		for (int i = 0; i < headers.length; i++) {
-
-			snb.append(headers[i]);
+			snb.append(HEADER[i]);
 			snb.append(",");	
 		}
 
 		snb.append(this.Fruits_arr.size());
-		snb.append('\n');
-		snb.append(this.Packmanarr.size());
 		snb.append(',');
+		snb.append(this.Packmanarr.size());
+
+		snb.append(',');
+		snb.append(this.BOX_arr.size());
+		snb.append('\n');
 
 		for (int i = 0; i < Packmanarr.size(); i++) {
 			Packmanarr.get(i).packLocation = map.pixel2coord(Packmanarr.get(i).getP().x(), Packmanarr.get(i).getP().y());
@@ -115,31 +172,15 @@ public class game {
 	}
 
 
-	public void Csvread() throws IOException{		
-		List<String[]> SV = CSVReader.readFile2(getdirectory());
-
-		for (int i = 1; i < SV.size(); i++) {
-			String[] RoW = SV.get(i);
-
-			if(RoW[0].equals("P")) {
-				Packmanarr.add(new Packman( map.coord2pixel(new Point3D(RoW[2],RoW[3],RoW[4])), Double.parseDouble(RoW[5]), Double.parseDouble(RoW[6])));	
-			}
-			if(RoW[0].equals("F")) {
-				Fruits_arr.add(new Fruit(map.coord2pixel(new Point3D(RoW[2],RoW[3],RoW[4])),  Integer.parseInt(RoW[5])));
-			}
-		}
-
-
-	}
 
 
 
 	public void save_to_kml() throws FileNotFoundException {
-		PrintWriter pw = new PrintWriter(new File(getdirectory()+".kml"));
+		PrintWriter pw = new PrintWriter(new File(getdirectory()+".kml"));//PrintWriter formatted representations of objects to a text-output stream
 
-		
-		
-		ArrayList<String> content = new ArrayList<String>();
+
+
+		ArrayList<String> capacity = new ArrayList<String>();
 		String kmlstart = 
 				"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n" + 
 						"<kml xmlns=\"http://www.opengis.net/kml/2.2\"><Document>\r\n<name> Points with TimeStamps</name>\r\n <Style id=\"red\">\r\n" + 
@@ -155,31 +196,24 @@ public class game {
 						"    <styleUrl>#check-hide-children</styleUrl>"+
 						"\r\n"+"<Folder><name>GAME PACKMAN</name>\n\n";
 
-		content.add(kmlstart);
+		capacity.add(kmlstart);
+		//save the data in nameData array
 		String[] nameData = {"Type","id","Lat","Lon","Speed/Weight"	,"Radius"};
 
 		String kmlend = "</Folder>\n" + 
 				"</Document>\n</kml>";
 
 		ArrayList<Packman> myPackmens = new ArrayList<>();
-        ShortestPathAlgo algo = new ShortestPathAlgo(this);
-		
-
-		if(Packmanarr.size() == 1) {
-			myPackmens =Packmanarr;
-			path p = algo.algoSinglePackman(myPackmens.get(0));
-			myPackmens.get(0).getpath().setpath1(p.getCpath());
-			myPackmens.get(0).getpath().setTime_path(p.getTime_path());
-		}else {	myPackmens = algo.algoMultiPackmans();}
+		ShortestPathAlgo algo = new ShortestPathAlgo(this);
 
 
+			myPackmens = algo.algoMultiPackmans();
 
 		for (int i = 0; i < myPackmens.size(); i++) {
 			myPackmens.get(i).packLocation = map.pixel2coord(myPackmens.get(i).getP().x(), myPackmens.get(i).getP().y());
 
 			for (int j = 0; j < myPackmens.get(i).getpath().getCpath().size(); j++) {
-				myPackmens.get(i).getpath().getCpath().get(j).fruit =
-						map.pixel2coord( myPackmens.get(i).getpath().getCpath().get(j).getfruit().x(),  myPackmens.get(i).getpath().getCpath().get(j).getfruit().y());
+				myPackmens.get(i).getpath().getCpath().get(j).fruit =map.pixel2coord( myPackmens.get(i).getpath().getCpath().get(j).getfruit().x(),  myPackmens.get(i).getpath().getCpath().get(j).getfruit().y());
 
 			}
 		}
@@ -221,7 +255,7 @@ public class game {
 					"</Placemark>\n";
 
 
-			content.add(kmlelement);
+			capacity.add(kmlelement);
 
 
 			if(packman_for.getpath().getCpath().size()==0)
@@ -251,26 +285,26 @@ public class game {
 						"</Placemark>\n";
 
 
-				content.add(kmlelement2);
+				capacity.add(kmlelement2);
 
 			}
-				
-				for (int i = 0; i < packman_for.getpath().getCpath().size(); i++) {
 
-					now_start=now_start.plusMinutes(5);
-					temp_start=now_start.plusMinutes(10);
+			for (int i = 0; i < packman_for.getpath().getCpath().size(); i++) {
 
-
+				now_start=now_start.plusMinutes(5);
+				temp_start=now_start.plusMinutes(10);
 
 
-					kmlelement ="<Placemark>\n" +
-							"<name><![CDATA[ FRUIT "+(i)+",Pac:"+j+"]]></name>\n <description>"+
-							"<![CDATA["
-							+nameData[0]+": <b> FRUIT  </b><br/>"
-							+nameData[1]+": <b> FRUIT Number :"+i+",Pac:"+j+" </b><br/>"
-							+nameData[2]+": <b>"+packman_for.getpath().getCpath().get(i).getfruit().x()+" </b><br/>" 
-							+nameData[3]+": <b>"+packman_for.getpath().getCpath().get(i).getfruit().y()+" </b><br/>" 
-							+nameData[4]+": <b>"+packman_for.getpath().getCpath().get(i).getWeight()+" </b><br/>" 
+
+
+				kmlelement ="<Placemark>\n" +
+						"<name><![CDATA[ FRUIT "+(i)+",Pac:"+j+"]]></name>\n <description>"+
+						"<![CDATA["
+						+nameData[0]+": <b> FRUIT  </b><br/>"
+						+nameData[1]+": <b> FRUIT Number :"+i+",Pac:"+j+" </b><br/>"
+						+nameData[2]+": <b>"+packman_for.getpath().getCpath().get(i).getfruit().x()+" </b><br/>" 
+						+nameData[3]+": <b>"+packman_for.getpath().getCpath().get(i).getfruit().y()+" </b><br/>" 
+						+nameData[4]+": <b>"+packman_for.getpath().getCpath().get(i).getWeight()+" </b><br/>" 
 
 
 						+"]]></description>\n" +
@@ -286,48 +320,48 @@ public class game {
 
 
 
-					content.add(kmlelement);			
-					
-					
-					
-					
-					if(i+1==packman_for.getpath().getCpath().size()) temp_start=now_start_end;
-
-					String kmlelement2 ="<Placemark>\n" +
-							"<name><![CDATA[ PACKMAN Moving "+j+", "+i+"]]></name>\n" +
-							"<description>"+
-							"<![CDATA["
-							+nameData[0]+": <b> PACKMAN  </b><br/>"
-							+nameData[1]+": <b> PACKMAN Moving "+j+", "+i+"</b><br/>"
-							+nameData[2]+": <b>"+packman_for.packLocation.x()+" </b><br/>" 
-							+nameData[3]+": <b>"+packman_for.packLocation.y()+" </b><br/>" 
-							+nameData[4]+": <b>"+packman_for.getSpeed()+" </b><br/>" 
-							+nameData[5]+": <b>"+Packmanarr.get(j).getred()+" </b><br/>" // altito to meter
+				capacity.add(kmlelement);			
 
 
 
-							+"]]></description>\n" +
-							"<TimeStamp>\r\n" + 
-							"        <when>"+temp_start+"</when>\r\n" + 
-							"      </TimeStamp>"+
-							"<styleUrl>#Packman</styleUrl>"+
-							"<Point>\n" +
-							"<coordinates>"+packman_for.getpath().getCpath().get(i).getfruit().y()+","
-							+packman_for.getpath().getCpath().get(i).getfruit().x()+"</coordinates>" +
-							"</Point>\n" +
-							"</Placemark>\n";
+
+				if(i+1==packman_for.getpath().getCpath().size()) temp_start=now_start_end;
+
+				String kmlelement2 ="<Placemark>\n" +
+						"<name><![CDATA[ PACKMAN Moving "+j+", "+i+"]]></name>\n" +
+						"<description>"+
+						"<![CDATA["
+						+nameData[0]+": <b> PACKMAN  </b><br/>"
+						+nameData[1]+": <b> PACKMAN Moving "+j+", "+i+"</b><br/>"
+						+nameData[2]+": <b>"+packman_for.packLocation.x()+" </b><br/>" 
+						+nameData[3]+": <b>"+packman_for.packLocation.y()+" </b><br/>" 
+						+nameData[4]+": <b>"+packman_for.getSpeed()+" </b><br/>" 
+						+nameData[5]+": <b>"+Packmanarr.get(j).getred()+" </b><br/>" // altito to meter
 
 
-					content.add(kmlelement2);
 
-				}
+						+"]]></description>\n" +
+						"<TimeStamp>\r\n" + 
+						"        <when>"+temp_start+"</when>\r\n" + 
+						"      </TimeStamp>"+
+						"<styleUrl>#Packman</styleUrl>"+
+						"<Point>\n" +
+						"<coordinates>"+packman_for.getpath().getCpath().get(i).getfruit().y()+","
+						+packman_for.getpath().getCpath().get(i).getfruit().x()+"</coordinates>" +
+						"</Point>\n" +
+						"</Placemark>\n";
+
+
+				capacity.add(kmlelement2);
+
+			}
 
 
 		}
 
-		content.add(kmlend);
-		pw.write(String.join("\n", content));
-		System.out.println("Operation Complete");
+		capacity.add(kmlend);
+		pw.write(String.join("\n", capacity));
+		System.out.println("Mission Accomplished");
 		pw.close();
 	} 
 

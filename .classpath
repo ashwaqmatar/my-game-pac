@@ -11,5 +11,6 @@
 	<classpathentry kind="src" path="Pictures&amp;Icones"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/5"/>
 	<classpathentry kind="lib" path="/PACMAN-GIS/json-simple-1.1.jar"/>
+	<classpathentry kind="lib" path="C:/Users/user/Desktop/Graph_v0.1.jar"/>
 	<classpathentry kind="output" path="Ex4/bin"/>
 </classpath>
