@@ -18,7 +18,7 @@ public class Map {
 		this.rotation_right_down = new Point3D(32.101899, 35.211588);
 		this.x = this.rotation_right_down.y()-this.rotation_left_up.y();
 		this.y = this.rotation_right_down.x()-this.rotation_left_up.x();
-		this.Diractroymap = "Pictures&Icones/Ariel.png";	
+		this.Diractroymap = "Pictures&Icones/Ariel1.png";	
 	}
 
 	/**

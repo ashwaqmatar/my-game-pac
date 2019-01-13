@@ -9,6 +9,8 @@ import java.awt.MenuBar;
 import java.awt.MenuItem;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
@@ -25,13 +27,19 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.filechooser.FileSystemView;
 
 import Coords.Map;
+import Coords.MyCoords;
 import GIS.Fruit;
+import GIS.Game;
 import GIS.Ghost;
 import GIS.game;
+import GIS.BOX;
+
 import GIS.Packman;
 import GIS.path;
 import Geom.Point3D;
+import Algorithm.AlgoTest;
 import Algorithm.ShortestPathAlgo;
+import Robot.Play;
 
 /**
  *This class manages the graphical interface of pacman game.
@@ -39,31 +47,31 @@ import Algorithm.ShortestPathAlgo;
  * More: http://www.ntu.edu.sg/home/ehchua/programming/java/j4a_gui.html
  *
  */
-public class MyFarme extends JFrame implements MouseListener
+public class MyFarme extends JFrame implements MouseListener, KeyListener
 {
 	private static final long serialVersionUID = 1L;
 
+	/***********************Seting the game Characters**************/
 
-
-	
-	double radius = 1;
-	int speed = 1;
-	MenuBar menuBarOption = new MenuBar();
-	public Map theMap = new Map();
 	public  ArrayList<Packman> Packman_arr = new ArrayList<>();
 	public  ArrayList<Fruit> Fruits_arr = new ArrayList<>();
 	public ArrayList<Ghost> Ghost_arr=new ArrayList<>();
 	public ArrayList<BOX> BOX_arr=new ArrayList<>();
-	public boolean Start_game=false;
-	public boolean drwaline = false;
-	private int isGamer=0;// if is Gamer==1 --> Fruit :::: if is Gamer == -1 --> Packman 
 	private game mygame=new game(Packman_arr, Fruits_arr,Ghost_arr, BOX_arr);
-	
 	public ArrayList<Packman>ArrayTemp=new ArrayList<>();
+	public Map theMap = new Map();
+	path  theclosepackman ;
+	public Play startgame  ;
+	private MyCoords coord =new MyCoords();
 	path TheCloserPackman;
-	
+
+
+
+
+
+
 	/******************************Set images******************/
-public  Graphics dbg;
+	public  Graphics dbg;
 	public BufferedImage myImage;
 	public BufferedImage pack;
 	public BufferedImage Fruit;
@@ -72,12 +80,31 @@ public  Graphics dbg;
 	public BufferedImage BOX;
 
 
+	double radius = 1;
+	int speed = 1;
+
+
+	public boolean game_player  = false;
+	private double dir;
+	public boolean click  = false;
+	Image image ;
+	private int isGamer=0;
+	public boolean Solo_game=false;
+
+	MenuBar menuBarOption = new MenuBar();//menu Bar in the interface 
+
+
+
+	game temp_run = new  game(Packman_arr, Fruits_arr,Ghost_arr, BOX_arr);
 	public MyFarme() 
 	{
 		initGUI();		
-		this.addMouseListener(this); 
+		this.addMouseListener(this);
+		this.addKeyListener(this);
+
 
 	}
+
 
 	private void initGUI() {
 
@@ -90,129 +117,153 @@ public  Graphics dbg;
 			e.printStackTrace();
 		}	
 		try {	
-			packimage = ImageIO.read(new File("Pictures&Icones/packnew.png")); 
+			pack = ImageIO.read(new File("Pictures&Icones/packnew.png")); 
 		} 
 		catch (IOException e) 
 		{ 
 			e.printStackTrace();
 		}
 		try {	
-			Fruitimage = ImageIO.read(new File("Pictures&Icones/furti.png")); 
+			Fruit = ImageIO.read(new File("Pictures&Icones/furti.png")); 
 		}
 		catch (IOException e)
 		{ 
 			e.printStackTrace();
 		}
+		try {
+			BOX = ImageIO.read(new File("Pictures&Icones/box.png"));
+		} catch (IOException e) 
+		{ 
+			e.printStackTrace();
+		}
+		try {	
+			ghost = ImageIO.read(new File("Pictures&Icones/ghost.png"));
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();	
+		}
+		try {
+			player = ImageIO.read(new File("Pictures&Icones/player.png"));
+		}
+		catch (IOException e) 
+		{ 
+			e.printStackTrace();
+		}
+
 		Menu theMenu = new Menu("File"); 
+		// Game insert \\
+		Menu Add_Insert =new Menu ("Insert");
+		Menu AddMenu = new Menu("Add"); 
+
+
+
 		menuBarOption.add(theMenu);
-		MenuItem runItem = new MenuItem("Run");
-		theMenu.add(runItem);
+		menuBarOption.add(AddMenu);
+		menuBarOption.add(Add_Insert);
 
+
+		// Game control 
+		MenuItem commandMan  = new MenuItem(" Manual");
+		MenuItem commandAuto = new MenuItem("Auto");
 		MenuItem restart_item = new MenuItem("Rest");	
-		theMenu.add(restart_item);
-
 		MenuItem exit = new MenuItem("Exit");
+		MenuItem Player_item = new MenuItem("Player ");	
+		MenuItem Csv_read = new MenuItem("Csv");
+
+
+
+
+
+
+		theMenu.add(commandMan);
+		theMenu.add(commandAuto);
+		theMenu.add(restart_item);
 		theMenu.add(exit);
 
+		AddMenu.add(Player_item);
+		Add_Insert.add(Csv_read);
 
 
-
-		Menu Add = new Menu("Add"); 
-		menuBarOption.add(Add);
-
-		MenuItem Item_Packman = new MenuItem("Packman");
-		MenuItem item_Fruit = new MenuItem("Fruit");		
-		Add.add(Item_Packman);
-		Add.add(item_Fruit);
-
-
-
-		Menu Add_import=new Menu ("Import");
-		MenuItem Csv_read = new MenuItem("Csv");
-		Add_import.add(Csv_read);
-
-
-		menuBarOption.add(Add_import);
-		Menu Add_export=new Menu ("Export");
-		menuBarOption.add(Add_export);
-		MenuItem Csv_writing_csv = new MenuItem(" Csv ");
-		MenuItem Csv_writing_kml = new MenuItem(" Kml ");
-		Add_export.add(Csv_writing_csv);
-		Add_export.add(Csv_writing_kml);
 
 		this.setMenuBar(menuBarOption);
+
+
 
 
 		/**
 		 * Turn on the buttons
 		 */
 
-		runItem.addActionListener(new ActionListener() {
+		commandMan.addActionListener(new ActionListener() {
 			@Override
 
 			public void actionPerformed(ActionEvent e) {
-				if(mygame.Packmanarr.size() >0 && mygame.Fruits_arr.size() > 0 ) {
-					Start_game=true;
-					drwaline = true;
-					isGamer=2;
-					for (int i = 0; i < Packman_arr.size(); i++) {
-						ArrayTemp.add(new Packman(Packman_arr.get(i)));
-						ArrayTemp.get(i).getpath().setpath1(Packman_arr.get(i).getpath().getCpath());
-					}
+				startgame.setIDs(208727354,205441884,313332736);
+				if (game_player==true&& mygame.player != null)
+				{
+					startgame.getBoard();
+					click = true;
+					isGamer = 4;
+					startgame.start();
 
-					packSmiulation();
+					Thread thread = new Thread(){
+						ArrayList<String> board_data = startgame.getBoard();
 
+
+						public void run(){ 
+
+
+							while(startgame.isRuning()){ 
+
+								try {
+									sleep(200);
+								} 
+								catch (InterruptedException e) 
+								{	
+									e.printStackTrace();	
+								}
+
+								startgame.rotate(dir);
+								board_data = startgame.getBoard();
+								String info = startgame.getStatistics();
+								System.out.println(info);
+
+
+								try {
+									mygame.makeGame(board_data);
+								} 
+								catch (IOException e1) 
+								{
+									e1.printStackTrace();
+								}
+								repaint();
+							}
+						}
+					};
+
+					thread.start();
 
 				}
-				Start_game = false;
-
+				else 
+					JOptionPane.showMessageDialog(null,"EROR: Choose Player to start te Game ");
 			}
 		});
 
-		restart_item.addActionListener(new ActionListener() {
+
+
+
+		Player_item.addActionListener  (new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 
-				radius = 1;
-				speed = 1;
-				new MenuBar();
-				new Map();
-				Packman_arr = new ArrayList<>();
-				Fruits_arr = new ArrayList<>();
-				mygame=new game(Packman_arr, Fruits_arr);
-				isGamer=0;
-				Start_game=false;
-				drwaline = false;
-				ArrayTemp=new ArrayList<>();
-				TheCloserPackman=null;
-				repaint();
-			}
-		});
-
-
-
-
-		exit.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				dispose();
-			}
-		});
-		item_Fruit.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				isGamer = 1;
-			}
-		});
-
-		Item_Packman.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				isGamer = -1;
+				isGamer = 2;
 
 			}
 		});
 
+
+		
 
 
 
@@ -220,7 +271,7 @@ public  Graphics dbg;
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				JFileChooser fileChooser = new JFileChooser();
-				fileChooser.setCurrentDirectory(new File(System.getProperty("user.home")));
+				fileChooser.setCurrentDirectory(new File(System.getProperty("user.data")));
 				fileChooser.setDialogTitle("Select an Csv File");
 				fileChooser.setAcceptAllFileFilterUsed(false);
 				FileNameExtensionFilter filter = new FileNameExtensionFilter("csv","CSV");
@@ -229,97 +280,210 @@ public  Graphics dbg;
 				int returnValue = fileChooser.showOpenDialog(null);
 				if (returnValue == JFileChooser.APPROVE_OPTION) {
 					System.out.println(fileChooser.getSelectedFile().getPath());
-					game theGame = new game(mygame.Packmanarr,mygame.Fruits_arr);
-					theGame.setfile_dir(fileChooser.getSelectedFile().getPath());
+
+					
+					startgame=new Play(fileChooser.getSelectedFile().getPath());
 					try {
-						theGame.Csvread();
-						mygame.Packmanarr = theGame.Packmanarr;
-						mygame.Fruits_arr = theGame.Fruits_arr;
-						mygame.file_directory = theGame.file_directory;
-						isGamer = 2;
+						mygame=new game(startgame);
+					Solo_game=true ;
+					
 
-						repaint();
-
-					} catch (IOException e1) {
-						e1.printStackTrace();
+					} catch (IOException e2) {
+						e2.printStackTrace();
 					}
+					isGamer=4;
+					mygame.setfile_dir(fileChooser.getSelectedFile().getPath());
+					repaint();
+
 
 				}
 			}
 		});
+	
 
-
-
-
-
-		Csv_writing_csv.addActionListener(new ActionListener() {
+		commandAuto.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 
-				JFileChooser jfc = new JFileChooser(FileSystemView.getFileSystemView().getHomeDirectory());
-				jfc.setDialogTitle("Export to Csv File");
-				jfc.setAcceptAllFileFilterUsed(false);
-				FileNameExtensionFilter filter = new FileNameExtensionFilter("csv","CSV");
-				jfc.addChoosableFileFilter(filter);
-
-				int returnValue = jfc.showSaveDialog(null);
-
-				if (returnValue == JFileChooser.APPROVE_OPTION) {
-					File selectedFile = jfc.getSelectedFile();
-					System.out.println(selectedFile.getAbsolutePath());
-
-
-					mygame.setfile_dir(selectedFile.getAbsolutePath());
-					try {
-						mygame.save2Csv();
-					} catch (FileNotFoundException e1) {
-						e1.printStackTrace();
-					}
+				if (game_player==true) {
+					JOptionPane.showMessageDialog(null,"The player will be written to a new random point close to a Fruit ");
 				}
 
+				startgame.setIDs(208727354,205441884,313332736);
+				click = false;
+				System.out.println(mygame.Fruits_arr.get((int)(Math.random()*mygame.Fruits_arr.size())).getfruit().x());
+				Point3D temp_locat=theMap.pixel2coord(mygame.Fruits_arr.get((int)(Math.random()*mygame.Fruits_arr.size())).getfruit().x(), mygame.Fruits_arr.get((int)(Math.random()*mygame.Fruits_arr.size())).getfruit().y());
 
+				startgame.setInitLocation(temp_locat.x(),temp_locat.y());
+
+				if(mygame.player != null) {
+					isGamer = 4;
+					startgame.getBoard();
+
+
+					startgame.start();
+
+					Thread thread = new Thread(){
+						ArrayList<String> board_data = startgame.getBoard();
+
+
+						public void run(){ 
+
+
+
+
+							while(startgame.isRuning()){ 
+
+								try {
+									sleep(200);
+								} 
+								catch (InterruptedException e) 
+								{
+									e.printStackTrace();
+								}
+
+								startgame.rotate(dir);
+								board_data = startgame.getBoard();
+								String info = startgame.getStatistics();
+								System.out.println(info);
+
+								try {
+									temp_run.makeGame(board_data);
+									Point3D covertedfromPixel2 = theMap.pixel2coord(mygame.player.get_player_Location().x(), mygame.player.get_player_Location().y());
+									Point3D covertedfromPixel3 = theMap.pixel2coord(temp_run.player.get_player_Location().x(), temp_run.player.get_player_Location().y());
+
+									AlgoTest algo = new AlgoTest(temp_run);
+
+									temp_run.player.set_player_Location(covertedfromPixel3);
+									mygame.player.set_player_Location(covertedfromPixel2);
+
+
+
+									double theDir = algo.update_Game(temp_run.player , dir);
+
+									dir = theDir;
+
+								} 
+								catch (IOException e) {	
+									e.printStackTrace();
+								}
+
+
+								try {
+									mygame.makeGame(board_data);
+								} catch (IOException e1) 
+								{
+									e1.printStackTrace();
+								}
+								repaint();						
+							}
+						}
+					};
+					thread.start();
+				}
 			}
+
 
 		});
 
-
-		Csv_writing_kml.addActionListener(new ActionListener() {
+		restart_item.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-
-				JFileChooser jfc = new JFileChooser(FileSystemView.getFileSystemView().getHomeDirectory());
-				jfc.setDialogTitle("Export to KML File");
-				jfc.setAcceptAllFileFilterUsed(false);
-				FileNameExtensionFilter filter = new FileNameExtensionFilter("kml","KML");
-				jfc.addChoosableFileFilter(filter);
-
-				int returnValue = jfc.showSaveDialog(null);
-
-				if (returnValue == JFileChooser.APPROVE_OPTION) {
-					File selectedFile = jfc.getSelectedFile();
-					System.out.println(selectedFile.getAbsolutePath());
-
-
-					mygame.setfile_dir(selectedFile.getAbsolutePath());
-
-
-
-
-					try {
-						mygame.save_to_kml();
-					} catch (FileNotFoundException e1) {
-						e1.printStackTrace();
-					}
-
-
-				}
-
-
+		    	radius = 1;
+				speed = 1;
+				Packman_arr = new ArrayList<>();
+				Fruits_arr = new ArrayList<>();
+				BOX_arr = new ArrayList<>();
+				Ghost_arr = new ArrayList<>();
+				mygame=new game(Packman_arr, Fruits_arr,Ghost_arr,BOX_arr);
+				new MenuBar();
+				new Map();
+				Solo_game=false;
+				isGamer=0;
+				ArrayTemp=new ArrayList<>();
+				game_player=false;
+				TheCloserPackman=null;
+				repaint();
 			}
-
 		});
 
+
+		exit.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				dispose();
+			}
+		});
 	}
+
+
+	public void update(Graphics g){
+
+			paint(g);
+		}
+		
+	public void paint(Graphics g) {
+
+		if(dbg==null){
+			image = createImage(5000,5000);
+			dbg = image.getGraphics();
+
+		}		
+		dbg.drawImage(image, 8,50, getWidth()-17, getHeight()-60,null);
+
+
+		
+
+		double x1 = 0;
+		double y1 = 0 ;
+		double x2 = 0;
+		double y2 = 0 ;
+
+
+		if (isGamer!=0&& mygame.Fruits_arr.size() > 0) {
+			
+			for (int i=0; i<mygame.Fruits_arr.size(); i++) 
+			{
+				x1=(int)(mygame.Fruits_arr.get(i).getfruit().x()*getWidth());
+				y1=(int)(mygame.Fruits_arr.get(i).getfruit().y()*getHeight());	
+
+				g.drawImage(Fruit, (int)x1, (int)y1,20, 20, null);
+
+			}
+		}
+		for (int j=0; j<mygame.BOX_arr.size(); j++) {
+			double height = (mygame.BOX_arr.get(j).getP1().y()*getHeight())-(mygame.BOX_arr.get(j).getP0().y()*getHeight());
+			double width = (mygame.BOX_arr.get(j).getP1().x()*getWidth())-(mygame.BOX_arr.get(j).getP0().x()*getWidth());
+			dbg.drawImage(BOX, (int)(mygame.BOX_arr.get(j).getP0().x()*getWidth()),(int) (mygame.BOX_arr.get(j).getP0().y()*getHeight()),(int)width, (int)height, null);
+
+		}
+
+		for (int j=0; j<mygame.Packmanarr.size(); j++) {
+
+			x1=(mygame.Packmanarr.get(j).getP().x()*getWidth());
+			y1=(mygame.Packmanarr.get(j).getP().y()*getHeight());	
+
+			dbg.drawImage(pack, (int)x1,(int) y1,20, 20, null);
+
+		}	
+		for (int j=0; j<mygame.Ghostarr.size(); j++) {
+			x1=(mygame.Ghostarr.get(j).getG().x()*getWidth());
+			y1=(mygame.Ghostarr.get(j).getG().y()*getHeight());	
+
+			dbg.drawImage(ghost, (int)x1,(int) y1,20, 20, null);
+
+		}
+
+		if(mygame.player!=null){
+			x1=(mygame.player.get_player_Location().x()*getWidth());
+			y1=(mygame.player.get_player_Location().y()*getHeight());	
+
+			dbg.setColor(Color.cyan);
+			dbg.fillOval((int)x1,(int) y1, 10, 10);
+		}
+		g.drawImage(image, 0, 0, this);
+	}
+		
 	private void  packSmiulation() {
 		ArrayList<Packman> myPackmens = new ArrayList<>();
 
@@ -378,100 +542,6 @@ public  Graphics dbg;
 
 
 
-
-	public void paint(Graphics g) {
-
-		Image scaledImage = myImage.getScaledInstance(this.getWidth(),this.getHeight(),myImage.SCALE_SMOOTH);
-		g.drawImage(scaledImage, 8,50, getWidth()-17, getHeight()-60,null);
-
-
-		Graphics2D g2 = (Graphics2D)g;
-
-		g2.setStroke(new BasicStroke(3));
-
-		double x1 = 0;
-		double y1 = 0 ;
-		double x2 = 0;
-		double y2 = 0 ;
-
-
-		if (isGamer!=0) {
-			for (int i=0; i<mygame.Fruits_arr.size(); i++) 
-			{
-				x1=(int)(mygame.Fruits_arr.get(i).getfruit().x()*getWidth());
-				y1=(int)(mygame.Fruits_arr.get(i).getfruit().y()*getHeight());	
-
-				g.drawImage(Fruitimage, (int)x1-5, (int)y1-6,30, 30, null);
-
-			}
-		}
-
-		for (int j=0; j<mygame.Packmanarr.size(); j++) {
-
-			x1=(mygame.Packmanarr.get(j).getP().x()*getWidth());
-			y1=(mygame.Packmanarr.get(j).getP().y()*getHeight());	
-
-			g.drawImage(packimage, (int)x1-6,(int) y1-7,30, 30, null);
-
-		}
-
-		if(drwaline == true) {
-
-
-			for(Packman pack : ArrayTemp) {
-
-				if (ArrayTemp.size()==1)
-				{
-					double x1_ =  pack.getP().x();
-					double y1_ =  pack.getP().y();
-					double x2_ =  Fruits_arr.get(0).getfruit().x();
-					double y2_ =  Fruits_arr.get(0).getfruit().y();
-
-					g.setColor(Color.blue);
-					g.drawLine((int)(x1_*getWidth()), (int)(y1_*getHeight()),(int)(x2_*getWidth()), (int)(y2_*getHeight()));
-
-
-					for (int i = 1; i < Fruits_arr.size(); i++) {
-
-						x1 =  Fruits_arr.get(i).getfruit().x();
-						y1 =  Fruits_arr.get(i).getfruit().y();
-						x2 =  Fruits_arr.get(i-1).getfruit().x();
-						y2 =  Fruits_arr.get(i-1).getfruit().y();
-
-						g.setColor(Color.blue);
-						g.drawLine((int)(x1*getWidth()), (int)(y1*getHeight()),(int)(x2*getWidth()), (int)(y2*getHeight()));	
-
-					}
-				}
-
-				if(pack.getpath().getCpath().size() != 0) {
-					double x1_ =  pack.getP().x();
-					double y1_ =  pack.getP().y();
-					double x2_ =  pack.getpath().getCpath().get(0).getfruit().x();
-					double y2_ =  pack.getpath().getCpath().get(0).getfruit().y();
-
-					g.setColor(Color.blue);
-					g.drawLine((int)(x1_*getWidth()), (int)(y1_*getHeight()),(int)(x2_*getWidth()), (int)(y2_*getHeight()));
-
-
-					for (int i = 1; i < pack.getpath().getCpath().size(); i++) {
-
-						x1 =  pack.getpath().getCpath().get(i).getfruit().x();
-						y1 =  pack.getpath().getCpath().get(i).getfruit().y();
-						x2 =  pack.getpath().getCpath().get(i-1).getfruit().x();
-						y2 =  pack.getpath().getCpath().get(i-1).getfruit().y();
-
-						g.setColor(Color.blue);
-						g.drawLine((int)(x1*getWidth()), (int)(y1*getHeight()),(int)(x2*getWidth()), (int)(y2*getHeight()));	
-
-					}
-				}
-
-			}
-		}
-
-
-	}
 
 
 
@@ -540,6 +610,27 @@ public  Graphics dbg;
 
 		win.setSize(win.myImage.getWidth(),win.myImage.getHeight());
 		win.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+	}
+
+
+	@Override
+	public void keyPressed(KeyEvent arg0) {
+		// TODO Auto-generated method stub
+
+	}
+
+
+	@Override
+	public void keyReleased(KeyEvent arg0) {
+		// TODO Auto-generated method stub
+
+	}
+
+
+	@Override
+	public void keyTyped(KeyEvent arg0) {
+		// TODO Auto-generated method stub
 
 	}
 

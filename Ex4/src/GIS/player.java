@@ -3,7 +3,7 @@ package GIS;
 import Geom.Point3D;
 
 public class player {
-	
+
 	double r;//radius
 	double speed;
 
@@ -12,14 +12,14 @@ public class player {
 	/**
 	 * Constractor
 	 */ 
-	
+
 	public player(Point3D p , double S, double R) {
 		this.speed  = S;
 		this.r = R;
 		this.playerLocation = p;
 
-		
-		
+
+
 	}
 	/**
 	 * Copy Constractor
@@ -38,7 +38,7 @@ public class player {
 	/**
 	 * @return the packLocation
 	 */
-	public Point3D getplayerLocation() {
+	public Point3D get_player_Location() {
 		return playerLocation;
 	}
 	/**
@@ -47,21 +47,21 @@ public class player {
 	public double getSpeed() {
 		return speed;
 	}	
-	
+
 	/**
 	 * @param r the r to set
 	 */
 	public void setred(double r) {
 		this.r = r;
 	}
-	
+
 	/**
 	 * @param packLocation the packLocation to set
 	 */
-	public void setPackLocation(Point3D packLocation) {
+	public void set_player_Location(Point3D packLocation) {
 		this.playerLocation = playerLocation;
 	}
-	
+
 	/**
 	 * @param speed the speed to set
 	 */
@@ -69,14 +69,14 @@ public class player {
 		this.speed = speed;
 	}
 
-	
+
 	@Override
 	public String toString() {
 		return "player ["+playerLocation.toString()+" Radius= "+r+"speed=" + speed + "]";
 	}
-	
-	
-	
+
+
+
 
 
 }
