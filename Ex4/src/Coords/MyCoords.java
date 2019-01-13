@@ -98,10 +98,36 @@ public class MyCoords implements coords_converter {
 	@Override
 	public boolean isValid_GPS_Point(Point3D p) {
 		boolean   isValid = false;
-		  if (-180<= p.x() && p.x() <= 180 && -90<=p.y() && p.y() <=90 && -450 <= p.z()){
-	            isValid = true;
-	        }
-	        return isValid;
+		if (-180<= p.x() && p.x() <= 180 && -90<=p.y() && p.y() <=90 && -450 <= p.z()){
+			isValid = true;
+		}
+		return isValid;
 
 	}
+
+	public double covertDeg(double num) {
+
+		if( num >= 0 && num <=90 ) {
+			return 90-num;
+		}else {
+			return 450-num;
+		}
+
+	}
+
+
+
+
+
+	public double myDir(Point3D gps0, Point3D gps1) {
+		// TODO Auto-generated method stub
+		double[] ans = new double[3];
+		ans[0] = gps1.north_angle(gps0);
+		double resulte =covertDeg(ans[0]);
+
+
+		return resulte;
+	}
 }
+
+

@@ -1,6 +1,7 @@
 package GUI;
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.FileDialog;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
@@ -25,6 +26,7 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.filechooser.FileSystemView;
+import javax.tools.Tool;
 
 import Coords.Map;
 import Coords.MyCoords;
@@ -40,6 +42,7 @@ import Geom.Point3D;
 import Algorithm.AlgoTest;
 import Algorithm.ShortestPathAlgo;
 import Robot.Play;
+import sun.java2d.pipe.DrawImage;
 
 /**
  *This class manages the graphical interface of pacman game.
@@ -70,7 +73,7 @@ public class MyFarme extends JFrame implements MouseListener, KeyListener
 
 
 
-	/******************************Set images******************/
+	/***********Set images******************/
 	public  Graphics dbg;
 	public BufferedImage myImage;
 	public BufferedImage pack;
@@ -200,50 +203,52 @@ public class MyFarme extends JFrame implements MouseListener, KeyListener
 
 			public void actionPerformed(ActionEvent e) {
 				startgame.setIDs(208727354,205441884,313332736);
-				if (game_player==true&& mygame.player != null)
+				if (game_player==true)
 				{
-					startgame.getBoard();
-					click = true;
-					isGamer = 4;
-					startgame.start();
 
-					Thread thread = new Thread(){
-						ArrayList<String> board_data = startgame.getBoard();
+					if(mygame.player != null){
+						startgame.getBoard();
+						click = true;
+						isGamer = 4;
+						startgame.start();
+
+						Thread thread = new Thread(){
+							ArrayList<String> board_data = startgame.getBoard();
 
 
-						public void run(){ 
+							public void run(){ 
 
 
-							while(startgame.isRuning()){ 
+								while(startgame.isRuning()){ 
 
-								try {
-									sleep(200);
-								} 
-								catch (InterruptedException e) 
-								{	
-									e.printStackTrace();	
+									try {
+										sleep(200);
+									} 
+									catch (InterruptedException e) 
+									{	
+										e.printStackTrace();	
+									}
+
+									startgame.rotate(dir);
+									board_data = startgame.getBoard();
+									String info = startgame.getStatistics();
+									System.out.println(info);
+
+
+									try {
+										mygame.makeGame(board_data);
+									} 
+									catch (IOException e1) 
+									{
+										e1.printStackTrace();
+									}
+									repaint();
 								}
-
-								startgame.rotate(dir);
-								board_data = startgame.getBoard();
-								String info = startgame.getStatistics();
-								System.out.println(info);
-
-
-								try {
-									mygame.makeGame(board_data);
-								} 
-								catch (IOException e1) 
-								{
-									e1.printStackTrace();
-								}
-								repaint();
 							}
-						}
-					};
+						};
 
-					thread.start();
-
+						thread.start();
+					}
 				}
 				else 
 					JOptionPane.showMessageDialog(null,"EROR: Choose Player to start te Game ");
@@ -263,7 +268,6 @@ public class MyFarme extends JFrame implements MouseListener, KeyListener
 		});
 
 
-		
 
 
 
@@ -271,7 +275,7 @@ public class MyFarme extends JFrame implements MouseListener, KeyListener
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				JFileChooser fileChooser = new JFileChooser();
-				fileChooser.setCurrentDirectory(new File(System.getProperty("user.data")));
+				fileChooser.setCurrentDirectory(new File(System.getProperty("user.home")));
 				fileChooser.setDialogTitle("Select an Csv File");
 				fileChooser.setAcceptAllFileFilterUsed(false);
 				FileNameExtensionFilter filter = new FileNameExtensionFilter("csv","CSV");
@@ -279,47 +283,51 @@ public class MyFarme extends JFrame implements MouseListener, KeyListener
 
 				int returnValue = fileChooser.showOpenDialog(null);
 				if (returnValue == JFileChooser.APPROVE_OPTION) {
-					System.out.println(fileChooser.getSelectedFile().getPath());
+					System.out.println(fileChooser.getSelectedFile().getPath())	;
 
-					
-					startgame=new Play(fileChooser.getSelectedFile().getPath());
+					startgame = new Play(fileChooser.getSelectedFile().getPath());
+
 					try {
-						mygame=new game(startgame);
-					Solo_game=true ;
-					
-
+						mygame = new game(startgame);
+						Solo_game=true;
 					} catch (IOException e2) {
+						// TODO Auto-generated catch block
 						e2.printStackTrace();
 					}
-					isGamer=4;
+					isGamer = 4;
 					mygame.setfile_dir(fileChooser.getSelectedFile().getPath());
 					repaint();
-
 
 				}
 			}
 		});
-	
+
+
+
 
 		commandAuto.addActionListener(new ActionListener() {
 			@Override
+
 			public void actionPerformed(ActionEvent e) {
 
+				
 				if (game_player==true) {
 					JOptionPane.showMessageDialog(null,"The player will be written to a new random point close to a Fruit ");
 				}
-
-				startgame.setIDs(208727354,205441884,313332736);
+				
+				startgame.setIDs(208727354	, 205441884);
 				click = false;
-				System.out.println(mygame.Fruits_arr.get((int)(Math.random()*mygame.Fruits_arr.size())).getfruit().x());
-				Point3D temp_locat=theMap.pixel2coord(mygame.Fruits_arr.get((int)(Math.random()*mygame.Fruits_arr.size())).getfruit().x(), mygame.Fruits_arr.get((int)(Math.random()*mygame.Fruits_arr.size())).getfruit().y());
 
-				startgame.setInitLocation(temp_locat.x(),temp_locat.y());
+				int ran = (int)(Math.random()*mygame.Fruits_arr.size());
+				
+				System.out.println(mygame.Fruits_arr.get(ran).getfruit().x());
+				Point3D temp_point_locat=theMap.pixel2coord(mygame.Fruits_arr.get(ran).getfruit().x(), mygame.Fruits_arr.get(ran).getfruit().y());
+					
+				startgame.setInitLocation(temp_point_locat.x(),temp_point_locat.y());
 
 				if(mygame.player != null) {
-					isGamer = 4;
 					startgame.getBoard();
-
+					isGamer = 4;
 
 					startgame.start();
 
@@ -334,47 +342,32 @@ public class MyFarme extends JFrame implements MouseListener, KeyListener
 
 							while(startgame.isRuning()){ 
 
-								try {
-									sleep(200);
-								} 
-								catch (InterruptedException e) 
-								{
-									e.printStackTrace();
-								}
+								try {sleep(200);} catch (InterruptedException e) {e.printStackTrace();}
 
 								startgame.rotate(dir);
 								board_data = startgame.getBoard();
 								String info = startgame.getStatistics();
 								System.out.println(info);
 
-								try {
-									temp_run.makeGame(board_data);
-									Point3D covertedfromPixel2 = theMap.pixel2coord(mygame.player.get_player_Location().x(), mygame.player.get_player_Location().y());
-									Point3D covertedfromPixel3 = theMap.pixel2coord(temp_run.player.get_player_Location().x(), temp_run.player.get_player_Location().y());
+								try {	temp_run.makeGame(board_data);
+								Point3D covertedfromPixel2 = theMap.pixel2coord(mygame.player.get_player_Location().x(), mygame.player.get_player_Location().y());
+								Point3D covertedfromPixel3 = theMap.pixel2coord(temp_run.player.get_player_Location().x(), temp_run.player.get_player_Location().y());
 
-									AlgoTest algo = new AlgoTest(temp_run);
+								AlgoTest algo = new AlgoTest(temp_run);
 
-									temp_run.player.set_player_Location(covertedfromPixel3);
-									mygame.player.set_player_Location(covertedfromPixel2);
-
+								temp_run.player.set_player_Location(covertedfromPixel3);
+								mygame.player.set_player_Location(covertedfromPixel2);
 
 
-									double theDir = algo.update_Game(temp_run.player , dir);
 
-									dir = theDir;
+								double theDir = algo.update_Game(temp_run.player , dir);
 
-								} 
-								catch (IOException e) {	
-									e.printStackTrace();
-								}
+								dir = theDir;
+
+								} catch (IOException e) {	e.printStackTrace();	}
 
 
-								try {
-									mygame.makeGame(board_data);
-								} catch (IOException e1) 
-								{
-									e1.printStackTrace();
-								}
+								try {mygame.makeGame(board_data);} catch (IOException e1) {e1.printStackTrace();}
 								repaint();						
 							}
 						}
@@ -383,13 +376,12 @@ public class MyFarme extends JFrame implements MouseListener, KeyListener
 				}
 			}
 
-
 		});
 
 		restart_item.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-		    	radius = 1;
+				radius = 1;
 				speed = 1;
 				Packman_arr = new ArrayList<>();
 				Fruits_arr = new ArrayList<>();
@@ -419,20 +411,21 @@ public class MyFarme extends JFrame implements MouseListener, KeyListener
 
 	public void update(Graphics g){
 
-			paint(g);
-		}
-		
+		paint(g);
+	}
+
 	public void paint(Graphics g) {
 
 		if(dbg==null){
-			image = createImage(5000,5000);
+			g.drawImage(myImage, 0, 0,getWidth(),getHeight(),null);
+			//image = createImage(5000,5000);
 			dbg = image.getGraphics();
 
 		}		
 		dbg.drawImage(image, 8,50, getWidth()-17, getHeight()-60,null);
 
 
-		
+
 
 		double x1 = 0;
 		double y1 = 0 ;
@@ -475,7 +468,7 @@ public class MyFarme extends JFrame implements MouseListener, KeyListener
 			dbg.drawImage(ghost, (int)x1,(int) y1,20, 20, null);
 
 		}
-// Updating location and coordinate of player 
+		// Updating location and coordinate of player 
 		if(mygame.player!=null){
 			x1=(mygame.player.get_player_Location().x()*getWidth());
 			y1=(mygame.player.get_player_Location().y()*getHeight());	
@@ -485,31 +478,10 @@ public class MyFarme extends JFrame implements MouseListener, KeyListener
 		}
 		g.drawImage(image, 0, 0, this);
 	}
-		
-	
 
 
 
 
-	private double myDir(Point3D gps0, Point3D gps1) {
-
-		double[] ans = new double[3];
-		ans[0] = gps1.north_angle(gps0);
-		double resulte =covertDeg(ans[0]);
-
-		
-		return resulte;
-	}
-
-	private double covertDeg(double num) {
-		
-		if( num >= 0 && num <=90 ) {
-			return 90-num;
-		}else {
-			return 450-num;
-		}
-		
-	}
 
 	@Override
 	public void mouseClicked(MouseEvent arg) {
@@ -525,7 +497,7 @@ public class MyFarme extends JFrame implements MouseListener, KeyListener
 
 		if(click == true) {
 			Point3D playerConert = theMap.pixel2coord(mygame.player.get_player_Location().x(), mygame.player. get_player_Location().y());
-			double finalnum = myDir(covertedfromPixel,playerConert);
+			double finalnum = coord.myDir(covertedfromPixel,playerConert);
 			System.out.println(finalnum);
 
 
@@ -609,11 +581,11 @@ public class MyFarme extends JFrame implements MouseListener, KeyListener
 	{
 		MyFarme window = new MyFarme();
 		window.setVisible(true);
-		
-		
+
+
 		window.setSize(900,700);
 		window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		
+
 	}
 
 }
