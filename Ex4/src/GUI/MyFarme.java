@@ -29,12 +29,12 @@ import javax.swing.filechooser.FileSystemView;
 import Coords.Map;
 import Coords.MyCoords;
 import GIS.Fruit;
-import GIS.Game;
-import GIS.Ghost;
 import GIS.game;
+import GIS.Ghost;
 import GIS.BOX;
 
 import GIS.Packman;
+import GIS.player;
 import GIS.path;
 import Geom.Point3D;
 import Algorithm.AlgoTest;
@@ -110,14 +110,14 @@ public class MyFarme extends JFrame implements MouseListener, KeyListener
 
 
 		try {
-			myImage = ImageIO.read(new File(theMap.getDiractroymap()));
+			myImage = ImageIO.read(new File("Pictures&Icones/Ariel.png"));
 		}
 		catch (IOException e) 
 		{
 			e.printStackTrace();
 		}	
 		try {	
-			pack = ImageIO.read(new File("Pictures&Icones/packnew.png")); 
+			pack = ImageIO.read(new File("Pictures&Icones/packman.png")); 
 		} 
 		catch (IOException e) 
 		{ 
@@ -441,7 +441,7 @@ public class MyFarme extends JFrame implements MouseListener, KeyListener
 
 
 		if (isGamer!=0&& mygame.Fruits_arr.size() > 0) {
-			
+			// Updating location and coordinate of fruit
 			for (int i=0; i<mygame.Fruits_arr.size(); i++) 
 			{
 				x1=(int)(mygame.Fruits_arr.get(i).getfruit().x()*getWidth());
@@ -451,13 +451,14 @@ public class MyFarme extends JFrame implements MouseListener, KeyListener
 
 			}
 		}
+		// Updating location and coordinate of BOX //**The box  did not move
 		for (int j=0; j<mygame.BOX_arr.size(); j++) {
 			double height = (mygame.BOX_arr.get(j).getP1().y()*getHeight())-(mygame.BOX_arr.get(j).getP0().y()*getHeight());
 			double width = (mygame.BOX_arr.get(j).getP1().x()*getWidth())-(mygame.BOX_arr.get(j).getP0().x()*getWidth());
 			dbg.drawImage(BOX, (int)(mygame.BOX_arr.get(j).getP0().x()*getWidth()),(int) (mygame.BOX_arr.get(j).getP0().y()*getHeight()),(int)width, (int)height, null);
 
 		}
-
+		// Updating location and coordinate of Packman
 		for (int j=0; j<mygame.Packmanarr.size(); j++) {
 
 			x1=(mygame.Packmanarr.get(j).getP().x()*getWidth());
@@ -466,6 +467,7 @@ public class MyFarme extends JFrame implements MouseListener, KeyListener
 			dbg.drawImage(pack, (int)x1,(int) y1,20, 20, null);
 
 		}	
+		// Updating location and coordinate of GHOST
 		for (int j=0; j<mygame.Ghostarr.size(); j++) {
 			x1=(mygame.Ghostarr.get(j).getG().x()*getWidth());
 			y1=(mygame.Ghostarr.get(j).getG().y()*getHeight());	
@@ -473,7 +475,7 @@ public class MyFarme extends JFrame implements MouseListener, KeyListener
 			dbg.drawImage(ghost, (int)x1,(int) y1,20, 20, null);
 
 		}
-
+// Updating location and coordinate of player 
 		if(mygame.player!=null){
 			x1=(mygame.player.get_player_Location().x()*getWidth());
 			y1=(mygame.player.get_player_Location().y()*getHeight());	
@@ -484,68 +486,30 @@ public class MyFarme extends JFrame implements MouseListener, KeyListener
 		g.drawImage(image, 0, 0, this);
 	}
 		
-	private void  packSmiulation() {
-		ArrayList<Packman> myPackmens = new ArrayList<>();
-
-		ShortestPathAlgo algo = new ShortestPathAlgo(mygame);
-		if(mygame.Packmanarr.size() == 1) {
-			myPackmens = mygame.Packmanarr;
-			path p = algo.algoSinglePackman(myPackmens.get(0));
-			Fruits_arr=p.getCpath();
-			myPackmens.get(0).getpath().setpath1(p.getCpath());
-			myPackmens.get(0).getpath().setTime_path(p.getTime_path());
-		}
-		else 
-		{
-			myPackmens = algo.algoMultiPackmans();
-		}
-		for (Packman packman : myPackmens)
-		{
-
-			Thread thread = new Thread() 
-			{
-				@Override
-				public void run()
-				{
-
-					for (int i = 0; i < packman.getpath().getCpath().size(); i++) {
+	
 
 
-						for (int j = 0; j < packman.getpath().getTime_path(); j++) {
-							if (i == packman.getpath().getCpath().size()) {
-								continue;
-							}
-							Point3D ans = packman.getpath().nextpoint(packman,packman.getpath().getCpath().get(i) , j);
-							packman.setPackLocation(ans);
-							repaint();
-
-							if(packman.getpath().Time2Points(packman,packman.getpath().getCpath().get(i) ) <= 0) {
-								continue;
-							}
-							try {
-								sleep(10);
-							} catch (InterruptedException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							}
-						}
-
-					}
-				}
-			};
-			thread.start();
 
 
-		}
+	private double myDir(Point3D gps0, Point3D gps1) {
+
+		double[] ans = new double[3];
+		ans[0] = gps1.north_angle(gps0);
+		double resulte =covertDeg(ans[0]);
+
+		
+		return resulte;
 	}
 
-
-
-
-
-
-
-
+	private double covertDeg(double num) {
+		
+		if( num >= 0 && num <=90 ) {
+			return 90-num;
+		}else {
+			return 450-num;
+		}
+		
+	}
 
 	@Override
 	public void mouseClicked(MouseEvent arg) {
@@ -559,6 +523,15 @@ public class MyFarme extends JFrame implements MouseListener, KeyListener
 		Point3D point_return=new Point3D(x_temp, y_temp, 0);
 		Point3D covertedfromPixel = theMap.pixel2coord(x_temp, y_temp);
 
+		if(click == true) {
+			Point3D playerConert = theMap.pixel2coord(mygame.player.get_player_Location().x(), mygame.player. get_player_Location().y());
+			double finalnum = myDir(covertedfromPixel,playerConert);
+			System.out.println(finalnum);
+
+
+			dir = finalnum;
+			startgame.rotate(dir);
+		}
 
 		if (isGamer==(1))
 		{	
@@ -574,64 +547,73 @@ public class MyFarme extends JFrame implements MouseListener, KeyListener
 			System.out.println("Packman "+covertedfromPixel.toString());
 
 			repaint();
+		}else if(isGamer==3)
+		{
+			mygame.Ghostarr.add(new Ghost(point_return, radius, speed));
+			System.out.println("Ghost "+covertedfromPixel.toString());
+			repaint();
+		}else if(isGamer==2)
+		{
+			mygame.player=new player(point_return, speed,radius);
+
+			System.out.println("Player "+covertedfromPixel.toString());
+			if(Solo_game==true)
+			{startgame.setInitLocation(covertedfromPixel.x(), covertedfromPixel.y());
+			game_player=true;
+			repaint();
+			}
 		}
+
 
 	}
 
 
 	@Override
 	public void mouseExited(MouseEvent arg0) {
-		// TODO Auto-generated method stub
 
 	}
 
 	@Override
 	public void mousePressed(MouseEvent arg0) {
-		// TODO Auto-generated method stub		
 
 	}
 
 	@Override
 	public void mouseReleased(MouseEvent arg0) {
-		// TODO Auto-generated method stub
 
 	}
 
 	@Override
 	public void mouseEntered(MouseEvent arg0) {
-		// TODO Auto-generated method stub
-
-	}
-
-	public static void main(String[] args)
-	{
-		MyFarme win = new MyFarme();
-		win.setVisible(true);
-
-		win.setSize(win.myImage.getWidth(),win.myImage.getHeight());
-		win.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 	}
 
 
 	@Override
 	public void keyPressed(KeyEvent arg0) {
-		// TODO Auto-generated method stub
 
 	}
 
 
 	@Override
 	public void keyReleased(KeyEvent arg0) {
-		// TODO Auto-generated method stub
 
 	}
 
 
 	@Override
 	public void keyTyped(KeyEvent arg0) {
-		// TODO Auto-generated method stub
 
+	}
+	public static void main(String[] args)
+	{
+		MyFarme window = new MyFarme();
+		window.setVisible(true);
+		
+		
+		window.setSize(900,700);
+		window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		
 	}
 
 }
