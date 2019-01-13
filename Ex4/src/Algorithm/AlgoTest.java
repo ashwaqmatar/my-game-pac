@@ -86,9 +86,9 @@ public class AlgoTest {
 
 			BOX bans = boxs.get(i).addToConver();
 
-			Point3D boxGPS_1 = theMap.pixel2coord(bans.getP0().x(), bans.getP0().y());
-			Point3D boxGPS_2 = theMap.pixel2coord(bans.getP1().x(), bans.getP1().y());
-			BOX b = new BOX(boxGPS_1,boxGPS_2);
+			Point3D boxGPS_0 = theMap.pixel2coord(bans.getP0().x(), bans.getP0().y());
+			Point3D boxGPS_1 = theMap.pixel2coord(bans.getP1().x(), bans.getP1().y());
+			BOX b = new BOX(boxGPS_0,boxGPS_1);
 
 
 			ansBoxs.add(b);
@@ -198,10 +198,10 @@ public class AlgoTest {
 						closeConner_min_Final = theConner;  
 						theConnerAns = newBoxs.get(i).getP1();
 					}
-					theConner = m.distance3d(newBoxs.get(i).getP3(),player);
+					theConner = m.distance3d(newBoxs.get(i).getP2(),player);
 					if(theConner < closeConner_min_Final){
 						closeConner_min_Final = theConner; 
-						theConnerAns = newBoxs.get(i).getP3();
+						theConnerAns = newBoxs.get(i).getP2();
 					}
 					theConner = m.distance3d(newBoxs.get(i).getP3(),player);
 					if(theConner < closeConner_min_Final){
@@ -224,8 +224,6 @@ public class AlgoTest {
 
 
 	public boolean CheckTheWayToFruit (Point3D p, Point3D theClose) {
-		Point3D temp = new Point3D(p);
-		Point3D ans;
 
 		for (int i = 0; i < newBoxs.size(); i++) {
 			if(newBoxs.get(i).checkit1(p, theClose)==true) {

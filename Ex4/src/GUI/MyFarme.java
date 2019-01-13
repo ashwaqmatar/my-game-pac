@@ -1,9 +1,8 @@
 package GUI;
-import java.awt.BasicStroke;
+
+
 import java.awt.Color;
-import java.awt.FileDialog;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Menu;
 import java.awt.MenuBar;
@@ -16,7 +15,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -25,25 +23,19 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import javax.swing.filechooser.FileSystemView;
-import javax.tools.Tool;
 
+import Algorithm.AlgoTest;
 import Coords.Map;
 import Coords.MyCoords;
 import GIS.Fruit;
 import GIS.game;
 import GIS.Ghost;
-import GIS.BOX;
-
 import GIS.Packman;
-import GIS.player;
 import GIS.path;
+import GIS.player;
+import GIS.BOX;
 import Geom.Point3D;
-import Algorithm.AlgoTest;
-import Algorithm.ShortestPathAlgo;
 import Robot.Play;
-import sun.java2d.pipe.DrawImage;
-
 /**
  *This class manages the graphical interface of pacman game.
  * the class is an implements of MouseListener is an extents of JFrame.
@@ -113,7 +105,7 @@ public class MyFarme extends JFrame implements MouseListener, KeyListener
 
 
 		try {
-			myImage = ImageIO.read(new File("Pictures&Icones/Ariel.png"));
+			myImage = ImageIO.read(new File((theMap.getDiractroymap())));
 		}
 		catch (IOException e) 
 		{
@@ -254,58 +246,7 @@ public class MyFarme extends JFrame implements MouseListener, KeyListener
 					JOptionPane.showMessageDialog(null,"EROR: Choose Player to start te Game ");
 			}
 		});
-
-
-
-
-		Player_item.addActionListener  (new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-
-				isGamer = 2;
-
-			}
-		});
-
-
-
-
-
-		Csv_read.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				JFileChooser fileChooser = new JFileChooser();
-				fileChooser.setCurrentDirectory(new File(System.getProperty("user.home")));
-				fileChooser.setDialogTitle("Select an Csv File");
-				fileChooser.setAcceptAllFileFilterUsed(false);
-				FileNameExtensionFilter filter = new FileNameExtensionFilter("csv","CSV");
-				fileChooser.addChoosableFileFilter(filter);
-
-				int returnValue = fileChooser.showOpenDialog(null);
-				if (returnValue == JFileChooser.APPROVE_OPTION) {
-					System.out.println(fileChooser.getSelectedFile().getPath())	;
-
-					startgame = new Play(fileChooser.getSelectedFile().getPath());
-
-					try {
-						mygame = new game(startgame);
-						Solo_game=true;
-					} catch (IOException e2) {
-						// TODO Auto-generated catch block
-						e2.printStackTrace();
-					}
-					isGamer = 4;
-					mygame.setfile_dir(fileChooser.getSelectedFile().getPath());
-					repaint();
-
-				}
-			}
-		});
-
-
-
-
-		commandAuto.addActionListener(new ActionListener() {
+	commandAuto.addActionListener(new ActionListener() {
 			@Override
 
 			public void actionPerformed(ActionEvent e) {
@@ -378,6 +319,7 @@ public class MyFarme extends JFrame implements MouseListener, KeyListener
 
 		});
 
+
 		restart_item.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -399,13 +341,63 @@ public class MyFarme extends JFrame implements MouseListener, KeyListener
 			}
 		});
 
-
-		exit.addActionListener(new ActionListener() {
+	exit.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				dispose();
 			}
 		});
+
+
+		Player_item.addActionListener  (new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+
+				isGamer = 2;
+
+			}
+		});
+
+
+
+
+
+		Csv_read.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				JFileChooser fileChooser = new JFileChooser();
+				fileChooser.setCurrentDirectory(new File(System.getProperty("user.home")));
+				fileChooser.setDialogTitle("Select an Csv File");
+				fileChooser.setAcceptAllFileFilterUsed(false);
+				FileNameExtensionFilter filter = new FileNameExtensionFilter("csv","CSV");
+				fileChooser.addChoosableFileFilter(filter);
+
+				int returnValue = fileChooser.showOpenDialog(null);
+				if (returnValue == JFileChooser.APPROVE_OPTION) {
+					System.out.println(fileChooser.getSelectedFile().getPath())	;
+
+					startgame = new Play(fileChooser.getSelectedFile().getPath());
+
+					try {
+						mygame = new game(startgame);
+						Solo_game=true;
+					} catch (IOException e2) {
+						// TODO Auto-generated catch block
+						e2.printStackTrace();
+					}
+					isGamer = 4;
+					mygame.setfile_dir(fileChooser.getSelectedFile().getPath());
+					repaint();
+
+				}
+			}
+		});
+
+
+
+
+	
+	
 	}
 
 
