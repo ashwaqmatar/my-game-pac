@@ -6,11 +6,12 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="src" path="Ex4/src"/>
-	<classpathentry kind="lib" path="Ex4/Ex4test.jar"/>
-	<classpathentry kind="lib" path="Ex4/mysql-connector-java-5.1.47.jar"/>
 	<classpathentry kind="src" path="Pictures&amp;Icones"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/5"/>
-	<classpathentry kind="lib" path="/PACMAN-GIS/json-simple-1.1.jar"/>
-	<classpathentry kind="lib" path="C:/Users/user/Desktop/Graph_v0.1.jar"/>
+	<classpathentry kind="lib" path="C:/Users/user/Desktop/GPS-Ex2-master/OOP_EX2-EX4-master/Ex4_v0.2.jar"/>
+	<classpathentry kind="lib" path="C:/Users/user/Desktop/GPS-Ex2-master/OOP_EX2-EX4-master/forms-1.3.0.jar"/>
+	<classpathentry kind="lib" path="C:/Users/user/Desktop/GPS-Ex2-master/OOP_EX2-EX4-master/Graph_v0.1.jar"/>
+	<classpathentry kind="lib" path="C:/Users/user/Desktop/GPS-Ex2-master/OOP_EX2-EX4-master/json-simple-1.1.jar"/>
+	<classpathentry kind="lib" path="C:/Users/user/Desktop/GPS-Ex2-master/OOP_EX2-EX4-master/mysql-connector-java-5.1.47.jar"/>
 	<classpathentry kind="output" path="Ex4/bin"/>
 </classpath>
